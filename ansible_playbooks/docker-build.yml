@@ -1,0 +1,15 @@
+---
+- name: Run Docker build on EC2 instance
+  hosts: all
+  gather_facts: False
+  tasks:
+    - name: Change to the directory containing the Dockerfile
+      ansible.builtin.command:
+        cmd: cd /home/ubuntu/Portfolio
+
+    - name: Execute Docker build command
+      ansible.builtin.command:
+        cmd: docker build -t portfolio .
+    - name: Run the docker container
+      ansible.builtin.command:
+        cmd: docker run -itd --name resume-portfolio -p 3000:3000 portfolio:latest
