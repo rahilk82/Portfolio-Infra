@@ -2,14 +2,30 @@
 - name: Run Docker build on EC2 instance
   hosts: all
   gather_facts: False
+  vars:
+    deploy_git_repo: 'github.com/rahilk82/Portfolio.git'
+    deploy_git_branch: 'main'
+
   tasks:
     - name: Change to the directory containing the Dockerfile
-      ansible.builtin.command:
-        cmd: cd /home/ubuntu/Portfolio
+      shell: 'cd /home/ubuntu/Portfolio/'
 
-    - name: Execute Docker build command
-      ansible.builtin.command:
-        cmd: docker build -t portfolio .
+    - name: Clone git repo to latest release
+      git:
+        repo: "https://{{deploy_git_repo}}"
+        dest: '/home/ubuntu/Portfolio/'
+        version: "main"
+        accept_hostkey: yes
+
+
+    - name: Stop the Container and Delete
+      shell: 'docker stop resume-portfolio && docker rm resume-portfolio'
+
+    - name: Delete the Docker Image
+      shell: 'docker rmi portfolio-v2:latest'
+
+    - name: Build New Docker Image
+      shell: 'docker build /home/ubuntu/Portfolio -t portfolio-v2'
+
     - name: Run the docker container
-      ansible.builtin.command:
-        cmd: docker run -itd --name resume-portfolio -p 3000:3000 portfolio:latest
+      shell: 'docker run -itd --name resume-portfolio -p 3000:3000 portfolio-v2:latest'
